@@ -34,7 +34,7 @@ Conceived and architected as part of my practical application of software concep
 
 ## 🤖 Development Methodology
 
-* **Architectural Blueprint & Design:** [Your Name] (Student, Dept. of Digital Systems, University of Piraeus)
+* **Architectural Blueprint & Design:** Kyriakos Damianos (Student, Dept. of Digital Systems, University of Piraeus)
 * **Code Optimization & Implementation:** Developed through **AI-assisted engineering**, utilizing **Claude (Anthropic)** to rapidly translate software architecture concepts into clean, deployable code.
 
 ---
