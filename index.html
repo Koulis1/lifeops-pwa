@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>LifeOps — Subscription Intelligence</title>
+
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0C0D13" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="LifeOps" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#0C0D13;
+  --bg-elevated:#121319;
+  --card:#161821;
+  --card-hover:#1B1D28;
+  --border:rgba(255,255,255,0.07);
+  --border-strong:rgba(255,255,255,0.14);
+  --text:#EDEDF3;
+  --text-soft:#9C9EB2;
+  --text-faint:#5F6175;
+
+  --accent:#9B8CFF;      /* violet — primary */
+  --accent-2:#5FE3C0;    /* mint — positive / savings */
+  --accent-3:#FF9B75;    /* coral — unused / attention */
+  --accent-4:#6FB6FF;    /* sky */
+  --accent-5:#E8C468;    /* amber */
+  --accent-6:#8890A8;    /* slate */
+
+  --radius:16px;
+  --radius-sm:10px;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+}
+.mono{font-family:'JetBrains Mono',monospace;}
+h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;}
+
+/* ---------- Shell & Nav ---------- */
+.app-shell{max-width:1080px;margin:0 auto;padding:32px 24px 90px;position:relative;overflow-x:hidden;}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:20px;margin-bottom:8px;flex-wrap:wrap;gap:14px;
+  position:relative;z-index:2;
+}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand-mark{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  background:conic-gradient(from 200deg, var(--accent), var(--accent-4), var(--accent-2), var(--accent-3), var(--accent));
+  padding:3px;
+}
+.brand-mark-inner{width:100%;height:100%;border-radius:50%;background:var(--bg);}
+.brand-name{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:20px;letter-spacing:-0.2px;}
+.brand-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-faint);letter-spacing:2px;text-transform:uppercase;margin-top:1px;}
+
+.tabs{display:flex;gap:2px;background:rgba(255,255,255,0.03);padding:4px;border-radius:12px;border:1px solid var(--border);}
+.tab-btn{
+  font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.8px;text-transform:uppercase;
+  border:none;background:transparent;color:var(--text-faint);padding:9px 16px;border-radius:9px;
+  cursor:pointer;transition:all .18s ease;
+}
+.tab-btn:hover{color:var(--text-soft);}
+.tab-btn.active{background:rgba(255,255,255,0.06);color:var(--text);box-shadow:inset 0 0 0 1px var(--border-strong);}
+
+.view{display:none;animation:fadein .3s ease;position:relative;z-index:2;}
+.view.active{display:block;}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.hero-glow{
+  position:absolute;width:520px;height:520px;border-radius:50%;
+  background:radial-gradient(circle, rgba(155,140,255,0.22), rgba(95,227,192,0.10) 42%, transparent 72%);
+  filter:blur(70px);top:-180px;left:50%;transform:translateX(-50%);
+  pointer-events:none;z-index:1;
+}
+
+.eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--accent);margin:0 0 8px;
+}
+.page-title{font-size:30px;margin:0 0 6px;font-weight:600;letter-spacing:-0.4px;}
+.page-sub{color:var(--text-soft);font-size:14px;margin:0 0 28px;max-width:520px;line-height:1.5;}
+
+/* ---------- Stat cards ---------- */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px;}
+@media(max-width:760px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 18px 16px;position:relative;overflow:hidden;
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg, var(--accent), transparent);
+}
+.stat-card.savings::before{background:linear-gradient(90deg, var(--accent-3), transparent);}
+.stat-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-faint);margin-bottom:10px;}
+.stat-value{font-family:'JetBrains Mono',monospace;font-size:25px;font-weight:600;color:var(--text);}
+.stat-value.coral{color:var(--accent-3);}
+.stat-foot{font-size:11.5px;color:var(--text-faint);margin-top:5px;}
+
+/* ---------- Section blocks ---------- */
+.section-block{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;margin-bottom:20px;}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.section-title{font-size:15px;font-weight:600;margin:0;font-family:'Space Grotesk',sans-serif;letter-spacing:-0.1px;}
+
+/* category rows */
+.cat-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.cat-row:last-child{border-bottom:none;}
+.cat-swatch{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.cat-name{flex:1;font-size:13.5px;color:var(--text-soft);}
+.cat-bar-track{width:140px;height:5px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;}
+.cat-bar-fill{height:100%;border-radius:4px;}
+.cat-val{font-family:'JetBrains Mono',monospace;font-size:12.5px;width:74px;text-align:right;color:var(--text);}
+.cat-pct{font-family:'JetBrains Mono',monospace;font-size:11px;width:38px;text-align:right;color:var(--text-faint);}
+
+/* insight bullets */
+.insight-item{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px;line-height:1.55;color:var(--text-soft);}
+.insight-item:last-child{border-bottom:none;}
+.insight-item strong{color:var(--text);font-weight:600;}
+.insight-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:6px;flex-shrink:0;box-shadow:0 0 8px rgba(155,140,255,0.6);}
+
+/* ---------- Subscription cards / rows ---------- */
+.sub-list{display:flex;flex-direction:column;gap:8px;}
+.sub-card{
+  position:relative;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  transition:border-color .15s ease;
+}
+.sub-card:hover{border-color:var(--border-strong);}
+.sub-card.cancelled{opacity:0.5;}
+.sub-name{font-weight:600;font-size:14px;min-width:140px;color:var(--text);}
+.sub-tag{
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:0.8px;
+  padding:3px 9px;border-radius:20px;color:var(--bg);white-space:nowrap;font-weight:600;
+}
+.status-pill{font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:0.8px;padding:3px 9px;border-radius:20px;border:1px solid var(--border-strong);color:var(--text-faint);}
+.status-pill.active{color:var(--accent-2);border-color:rgba(95,227,192,0.35);}
+.status-pill.cancelled{color:var(--text-faint);}
+.sub-cost{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:14.5px;margin-left:auto;color:var(--text);}
+.sub-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
+.unused-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:1px;
+  color:var(--accent-3);background:rgba(255,155,117,0.08);border:1px solid rgba(255,155,117,0.28);
+  padding:4px 10px;border-radius:20px;white-space:nowrap;
+}
+.unused-pill.floating{position:absolute;top:-9px;right:14px;}
+.unused-dot{width:5px;height:5px;border-radius:50%;background:var(--accent-3);box-shadow:0 0 6px var(--accent-3);}
+
+/* ---------- Buttons ---------- */
+.btn{
+  font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;border-radius:8px;
+  padding:8px 14px;border:1px solid transparent;background:var(--accent);color:#0C0D13;
+  cursor:pointer;transition:opacity .15s ease, transform .1s ease;
+}
+.btn:hover{opacity:0.85;}
+.btn:active{transform:scale(0.98);}
+.btn.secondary{background:transparent;color:var(--text);border-color:var(--border-strong);}
+.btn.ghost{background:transparent;color:var(--text-soft);border-color:var(--border);}
+.btn.ghost:hover{color:var(--text);border-color:var(--border-strong);}
+.btn.danger{background:transparent;color:var(--accent-3);border-color:rgba(255,155,117,0.35);}
+.btn.danger:hover{background:rgba(255,155,117,0.1);}
+.btn.small{padding:6px 11px;font-size:11.5px;}
+.btn.block{width:100%;}
+
+/* ---------- Filters ---------- */
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+select, input[type=text], input[type=number], textarea{
+  font-family:'Inter',sans-serif;font-size:13px;padding:9px 11px;border:1px solid var(--border-strong);
+  border-radius:8px;background:var(--bg-elevated);color:var(--text);
+}
+select{font-family:'JetBrains Mono',monospace;font-size:12px;}
+input::placeholder{color:var(--text-faint);}
+label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-faint);display:block;margin-bottom:6px;}
+.field{display:flex;flex-direction:column;gap:2px;}
+.field-row{display:flex;gap:12px;flex-wrap:wrap;}
+.checkbox-row{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.checkbox-row input{width:16px;height:16px;accent-color:var(--accent);}
+.checkbox-row label{margin:0;text-transform:none;font-weight:500;letter-spacing:0;color:var(--text-soft);font-size:13px;}
+
+/* ---------- Donut & bars (Insights) ---------- */
+.donut-wrap{display:flex;gap:36px;flex-wrap:wrap;align-items:center;}
+.donut-svg-holder{position:relative;flex-shrink:0;}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+.donut-center .dc-val{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:19px;color:var(--text);}
+.donut-center .dc-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint);}
+.legend{flex:1;min-width:220px;}
+.legend-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.legend-row:last-child{border-bottom:none;}
+.legend-name{flex:1;font-size:13px;color:var(--text-soft);}
+.legend-val{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--text);}
+.legend-pct{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-faint);width:40px;text-align:right;}
+
+.bar-breakdown-row{margin-bottom:14px;}
+.bar-breakdown-head{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px;}
+.bar-breakdown-head .name{font-weight:600;color:var(--text);}
+.bar-breakdown-head .val{font-family:'JetBrains Mono',monospace;color:var(--text-faint);}
+.bar-track{height:8px;background:rgba(255,255,255,0.06);border-radius:5px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:5px;}
+
+.tips-list{display:flex;flex-direction:column;gap:0;}
+
+.empty-state{text-align:center;padding:38px 20px;color:var(--text-faint);font-size:13.5px;}
+.empty-state .eyebrow{color:var(--text-faint);}
+
+/* ---------- Modal ---------- */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(6,6,10,0.65);display:flex;align-items:center;justify-content:center;
+  z-index:100;padding:20px;backdrop-filter:blur(4px);
+}
+.modal{
+  background:var(--card);border:1px solid var(--border-strong);border-radius:18px;max-width:440px;width:100%;padding:26px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.5);max-height:88vh;overflow-y:auto;
+}
+.modal h3{margin:0 0 4px;font-size:19px;font-weight:600;}
+.modal .modal-sub{color:var(--text-soft);font-size:13px;margin:0 0 20px;}
+.modal-actions{display:flex;gap:10px;margin-top:20px;}
+.modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-faint);line-height:1;}
+.modal-close:hover{color:var(--text);}
+
+textarea{width:100%;min-height:140px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.6;resize:vertical;}
+
+/* onboarding */
+.onboard-modal{max-width:480px;text-align:left;}
+.onboard-steps{margin:18px 0;padding:0;list-style:none;}
+.onboard-steps li{display:flex;gap:12px;padding:9px 0;font-size:13.5px;color:var(--text-soft);border-bottom:1px solid var(--border);}
+.onboard-steps li:last-child{border-bottom:none;}
+.onboard-num{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent);}
+
+.footnote{font-size:11.5px;color:var(--text-faint);text-align:center;margin-top:34px;position:relative;z-index:2;}
+@media(max-width:640px){
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .sub-cost{margin-left:0;}
+  .donut-wrap{flex-direction:column;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <div class="hero-glow"></div>
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark"><div class="brand-mark-inner"></div></div>
+      <div>
+        <div class="brand-name">LifeOps</div>
+        <div class="brand-sub">Subscription Intelligence</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="subscriptions">Subscriptions</button>
+      <button class="tab-btn" data-tab="insights">Insights</button>
+    </div>
+  </div>
+
+  <main id="view-dashboard" class="view active"></main>
+  <main id="view-subscriptions" class="view"></main>
+  <main id="view-insights" class="view"></main>
+
+  <div class="footnote">Your subscription data is stored privately to your account.</div>
+</div>
+
+<div id="modal-root"></div>
+
+<script>
+/* =========================================================
+   DATA & STATE
+========================================================= */
+const CATEGORIES = ['Entertainment','Productivity','Utilities','Health','News','Other'];
+const CATEGORY_COLORS = {
+  Entertainment:'#9B8CFF',
+  Productivity:'#5FE3C0',
+  Utilities:'#6FB6FF',
+  Health:'#FF9B75',
+  News:'#E8C468',
+  Other:'#8890A8'
+};
+
+let state = {
+  subscriptions: [],
+  user: { onboarding_completed: false },
+  tab: 'dashboard',
+  filters: { category: 'all', status: 'all', sort: 'name' }
+};
+
+function uid(){ return 'sub_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function money(n){ return '$' + (Math.round((n + Number.EPSILON) * 100) / 100).toFixed(2); }
+
+const SAMPLE_SUBS = [
+  { id: uid(), name:'Netflix', category:'Entertainment', monthly_cost:15.49, status:'Active', is_unused:false },
+  { id: uid(), name:'Spotify', category:'Entertainment', monthly_cost:11.99, status:'Active', is_unused:false },
+  { id: uid(), name:'Notion', category:'Productivity', monthly_cost:8.00, status:'Active', is_unused:false },
+  { id: uid(), name:'Adobe Creative Cloud', category:'Productivity', monthly_cost:54.99, status:'Active', is_unused:true },
+  { id: uid(), name:'iCloud+', category:'Utilities', monthly_cost:2.99, status:'Active', is_unused:false },
+  { id: uid(), name:'Gym Membership', category:'Health', monthly_cost:39.00, status:'Active', is_unused:true },
+  { id: uid(), name:'NYT Digital', category:'News', monthly_cost:9.00, status:'Active', is_unused:false },
+  { id: uid(), name:'Old VPN Service', category:'Other', monthly_cost:6.50, status:'Cancelled', is_unused:false }
+];
+
+/* =========================================================
+   PERSISTENCE
+========================================================= */
+async function loadData(){
+  try{
+    const res = await window.storage.get('lifeops:subscriptions', false);
+    state.subscriptions = res ? JSON.parse(res.value) : [];
+  }catch(e){ state.subscriptions = []; }
+  try{
+    const res = await window.storage.get('lifeops:user', false);
+    state.user = res ? JSON.parse(res.value) : { onboarding_completed:false };
+  }catch(e){ state.user = { onboarding_completed:false }; }
+
+  renderAll();
+  if(!state.user.onboarding_completed){ openOnboarding(); }
+}
+async function saveSubs(){
+  try{ await window.storage.set('lifeops:subscriptions', JSON.stringify(state.subscriptions), false); }catch(e){}
+}
+async function saveUser(){
+  try{ await window.storage.set('lifeops:user', JSON.stringify(state.user), false); }catch(e){}
+}
+
+/* =========================================================
+   DERIVED DATA HELPERS
+========================================================= */
+function activeSubs(){ return state.subscriptions.filter(s => s.status === 'Active'); }
+function unusedSubs(){ return state.subscriptions.filter(s => s.is_unused && s.status === 'Active'); }
+function monthlySpend(){ return activeSubs().reduce((a,s)=>a+Number(s.monthly_cost),0); }
+function yearlySpend(){ return monthlySpend()*12; }
+function potentialSavings(){ return unusedSubs().reduce((a,s)=>a+Number(s.monthly_cost),0); }
+
+function spendByCategory(){
+  const map = {};
+  CATEGORIES.forEach(c => map[c] = 0);
+  activeSubs().forEach(s => { map[s.category] = (map[s.category]||0) + Number(s.monthly_cost); });
+  return CATEGORIES.map(c => ({ category:c, value: map[c] || 0 }))
+    .filter(d => d.value > 0)
+    .sort((a,b) => b.value - a.value);
+}
+
+/* =========================================================
+   RENDER: SHELL / TABS
+========================================================= */
+function switchTab(tab){
+  state.tab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + tab).classList.add('active');
+  renderAll();
+}
+
+function renderAll(){
+  renderDashboard();
+  renderSubscriptionsPage();
+  renderInsights();
+}
+
+/* =========================================================
+   RENDER: DASHBOARD
+========================================================= */
+function renderDashboard(){
+  const el = document.getElementById('view-dashboard');
+  const ms = monthlySpend(), ys = yearlySpend(), ps = potentialSavings();
+  const active = activeSubs();
+  const cats = spendByCategory();
+  const total = ms || 1;
+
+  el.innerHTML = `
+    <div class="eyebrow">Your Overview</div>
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-sub">A live pulse on everything you're currently paying for.</p>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Monthly Spend</div>
+        <div class="stat-value mono">${money(ms)}</div>
+        <div class="stat-foot">${active.length} active line item${active.length===1?'':'s'}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Yearly Spend</div>
+        <div class="stat-value mono">${money(ys)}</div>
+        <div class="stat-foot">projected at current rate</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Subscriptions</div>
+        <div class="stat-value mono">${active.length}</div>
+        <div class="stat-foot">of ${state.subscriptions.length} total tracked</div>
+      </div>
+      <div class="stat-card savings">
+        <div class="stat-label">Potential Savings</div>
+        <div class="stat-value mono coral">${money(ps)}</div>
+        <div class="stat-foot">${unusedSubs().length} flagged unused / mo</div>
+      </div>
+    </div>
+
+    <div class="section-block">
+      <div class="section-head"><h2 class="section-title">Spending by Category</h2></div>
+      ${cats.length === 0 ? `<div class="empty-state">No active spend yet — add a subscription to see the breakdown.</div>` :
+        cats.map(c => `
+          <div class="cat-row">
+            <div class="cat-swatch" style="background:${CATEGORY_COLORS[c.category]}"></div>
+            <div class="cat-name">${c.category}</div>
+            <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${(c.value/total*100).toFixed(1)}%;background:${CATEGORY_COLORS[c.category]}"></div></div>
+            <div class="cat-val mono">${money(c.value)}</div>
+            <div class="cat-pct mono">${(c.value/total*100).toFixed(0)}%</div>
+          </div>`).join('')}
+    </div>
+
+    <div class="section-block">
+      <div class="section-head"><h2 class="section-title">Quick Insights</h2></div>
+      <div class="tips-list">${quickInsightsHTML()}</div>
+    </div>
+
+    <div class="section-block">
+      <div class="section-head">
+        <h2 class="section-title">Your Subscriptions</h2>
+        <button class="btn small" data-action="add-sub">+ Add Subscription</button>
+      </div>
+      <div class="sub-list">${subListHTML(state.subscriptions)}</div>
+    </div>
+  `;
+}
+
+function quickInsightsHTML(){
+  const tips = buildTips();
+  if(tips.length === 0) return `<div class="empty-state" style="padding:14px 0;">Nothing to flag right now — you're all caught up.</div>`;
+  return tips.map(t => `<div class="insight-item"><div class="insight-dot"></div><div>${t}</div></div>`).join('');
+}
+
+function buildTips(){
+  const tips = [];
+  const active = activeSubs();
+  const cats = spendByCategory();
+  const unused = unusedSubs();
+  const ms = monthlySpend();
+
+  if(state.subscriptions.length === 0){
+    tips.push(`You haven't added any subscriptions yet — start by adding the ones you know you're paying for.`);
+    return tips;
+  }
+  if(unused.length > 0){
+    tips.push(`You have <strong>${unused.length}</strong> subscription${unused.length===1?'':'s'} flagged as unused, costing <strong>${money(potentialSavings())}</strong>/month (${money(potentialSavings()*12)}/year) if left uncancelled.`);
+  }
+  if(cats.length > 0){
+    const top = cats[0];
+    const pct = ms > 0 ? (top.value/ms*100).toFixed(0) : 0;
+    tips.push(`<strong>${top.category}</strong> is your largest category, making up ${pct}% of monthly spend (${money(top.value)}).`);
+  }
+  if(active.length >= 8){
+    tips.push(`You're tracking <strong>${active.length}</strong> active subscriptions — a quarterly review can help catch ones that quietly crept in.`);
+  }
+  const cancelled = state.subscriptions.filter(s => s.status === 'Cancelled');
+  if(cancelled.length > 0){
+    tips.push(`${cancelled.length} subscription${cancelled.length===1?'':'s'} marked cancelled — confirmed off your books.`);
+  }
+  return tips;
+}
+
+function subListHTML(list){
+  if(list.length === 0){
+    return `<div class="empty-state"><div class="eyebrow">Nothing Tracked Yet</div>No subscriptions tracked yet. Add your first one to get started.</div>`;
+  }
+  return list.map(s => `
+    <div class="sub-card ${s.status === 'Cancelled' ? 'cancelled' : ''}">
+      ${s.is_unused && s.status === 'Active' ? `<div class="unused-pill floating"><span class="unused-dot"></span>Unused</div>` : ''}
+      <div class="sub-name">${escapeHTML(s.name)}</div>
+      <div class="sub-tag" style="background:${CATEGORY_COLORS[s.category] || CATEGORY_COLORS.Other}">${s.category}</div>
+      <div class="status-pill ${s.status === 'Active' ? 'active' : 'cancelled'}">${s.status}</div>
+      <div class="sub-cost mono">${money(s.monthly_cost)}<span style="font-size:10px;color:var(--text-faint);">/mo</span></div>
+      <div class="sub-actions">
+        <button class="btn ghost small" data-action="toggle-unused" data-id="${s.id}">${s.is_unused ? 'Mark Used' : 'Mark Unused'}</button>
+        <button class="btn ghost small" data-action="edit-sub" data-id="${s.id}">Edit</button>
+        <button class="btn ghost small" data-action="email-sub" data-id="${s.id}">Cancellation Email</button>
+        <button class="btn danger small" data-action="delete-sub" data-id="${s.id}">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escapeHTML(str){
+  const d = document.createElement('div');
+  d.innerText = str;
+  return d.innerHTML;
+}
+
+/* =========================================================
+   RENDER: SUBSCRIPTIONS PAGE
+========================================================= */
+function renderSubscriptionsPage(){
+  const el = document.getElementById('view-subscriptions');
+  const f = state.filters;
+
+  let list = [...state.subscriptions];
+  if(f.category !== 'all') list = list.filter(s => s.category === f.category);
+  if(f.status !== 'all') list = list.filter(s => s.status === f.status);
+
+  if(f.sort === 'name') list.sort((a,b) => a.name.localeCompare(b.name));
+  else if(f.sort === 'cost_desc') list.sort((a,b) => b.monthly_cost - a.monthly_cost);
+  else if(f.sort === 'cost_asc') list.sort((a,b) => a.monthly_cost - b.monthly_cost);
+  else if(f.sort === 'category') list.sort((a,b) => a.category.localeCompare(b.category));
+
+  const ms = monthlySpend(), ys = yearlySpend(), activeCount = activeSubs().length;
+
+  el.innerHTML = `
+    <div class="eyebrow">Full Register</div>
+    <h1 class="page-title">Subscriptions</h1>
+    <p class="page-sub">Filter, sort, and manage every recurring charge on your account.</p>
+
+    <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat-card"><div class="stat-label">Monthly Total</div><div class="stat-value mono">${money(ms)}</div></div>
+      <div class="stat-card"><div class="stat-label">Yearly Total</div><div class="stat-value mono">${money(ys)}</div></div>
+      <div class="stat-card"><div class="stat-label">Active Count</div><div class="stat-value mono">${activeCount}</div></div>
+    </div>
+
+    <div class="section-block">
+      <div class="section-head">
+        <h2 class="section-title">Manage</h2>
+        <button class="btn small" data-action="add-sub">+ Add Subscription</button>
+      </div>
+      <div class="filter-bar">
+        <div class="field">
+          <label>Category</label>
+          <select id="filter-category">
+            <option value="all">All Categories</option>
+            ${CATEGORIES.map(c => `<option value="${c}" ${f.category===c?'selected':''}>${c}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="filter-status">
+            <option value="all" ${f.status==='all'?'selected':''}>All Statuses</option>
+            <option value="Active" ${f.status==='Active'?'selected':''}>Active</option>
+            <option value="Cancelled" ${f.status==='Cancelled'?'selected':''}>Cancelled</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Sort By</label>
+          <select id="filter-sort">
+            <option value="name" ${f.sort==='name'?'selected':''}>Name (A–Z)</option>
+            <option value="cost_desc" ${f.sort==='cost_desc'?'selected':''}>Cost (High–Low)</option>
+            <option value="cost_asc" ${f.sort==='cost_asc'?'selected':''}>Cost (Low–High)</option>
+            <option value="category" ${f.sort==='category'?'selected':''}>Category</option>
+          </select>
+        </div>
+      </div>
+      <div class="sub-list">
+        ${list.length === 0 ? `<div class="empty-state">No subscriptions match these filters.</div>` :
+          list.map(s => `
+          <div class="sub-card ${s.status === 'Cancelled' ? 'cancelled' : ''}">
+            ${s.is_unused && s.status === 'Active' ? `<div class="unused-pill floating"><span class="unused-dot"></span>Unused</div>` : ''}
+            <div class="sub-name">${escapeHTML(s.name)}</div>
+            <div class="sub-tag" style="background:${CATEGORY_COLORS[s.category] || CATEGORY_COLORS.Other}">${s.category}</div>
+            <div class="status-pill ${s.status === 'Active' ? 'active' : 'cancelled'}">${s.status}</div>
+            <div class="sub-cost mono">${money(s.monthly_cost)}<span style="font-size:10px;color:var(--text-faint);">/mo</span></div>
+            <div class="sub-actions">
+              <button class="btn ghost small" data-action="edit-sub" data-id="${s.id}">Edit</button>
+              ${s.status === 'Active' ? `<button class="btn ghost small" data-action="cancel-sub" data-id="${s.id}">Cancel</button>` : ''}
+              <button class="btn ghost small" data-action="email-sub" data-id="${s.id}">Cancellation Email</button>
+              <button class="btn danger small" data-action="delete-sub" data-id="${s.id}">Delete</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('filter-category').onchange = e => { state.filters.category = e.target.value; renderSubscriptionsPage(); };
+  document.getElementById('filter-status').onchange = e => { state.filters.status = e.target.value; renderSubscriptionsPage(); };
+  document.getElementById('filter-sort').onchange = e => { state.filters.sort = e.target.value; renderSubscriptionsPage(); };
+}
+
+/* =========================================================
+   RENDER: INSIGHTS PAGE  (real dynamic data — no missing parent grouping)
+========================================================= */
+function renderInsights(){
+  const el = document.getElementById('view-insights');
+  const ms = monthlySpend(), ys = yearlySpend(), ps = potentialSavings();
+  const active = activeSubs();
+  const cats = spendByCategory();
+  const total = ms || 1;
+  const unused = unusedSubs();
+
+  el.innerHTML = `
+    <div class="eyebrow">Analytics</div>
+    <h1 class="page-title">Spending Insights</h1>
+    <p class="page-sub">Where your money is actually going, and what you could get back.</p>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">Monthly Spend</div><div class="stat-value mono">${money(ms)}</div></div>
+      <div class="stat-card"><div class="stat-label">Yearly Spend</div><div class="stat-value mono">${money(ys)}</div></div>
+      <div class="stat-card savings"><div class="stat-label">Potential Savings</div><div class="stat-value mono coral">${money(ps)}</div></div>
+      <div class="stat-card"><div class="stat-label">Active Subscriptions</div><div class="stat-value mono">${active.length}</div></div>
+    </div>
+
+    <div class="section-block">
+      <div class="section-head"><h2 class="section-title">Category Breakdown</h2></div>
+      ${cats.length === 0 ? `<div class="empty-state">Add an active subscription to see your category split.</div>` : `
+      <div class="donut-wrap">
+        <div class="donut-svg-holder">
+          ${buildDonutSVG(cats, total)}
+          <div class="donut-center">
+            <div class="dc-val mono">${money(ms)}</div>
+            <div class="dc-label">per month</div>
+          </div>
+        </div>
+        <div class="legend">
+          ${cats.map(c => `
+            <div class="legend-row">
+              <div class="cat-swatch" style="background:${CATEGORY_COLORS[c.category]}"></div>
+              <div class="legend-name">${c.category}</div>
+              <div class="legend-val mono">${money(c.value)}</div>
+              <div class="legend-pct">${(c.value/total*100).toFixed(0)}%</div>
+            </div>`).join('')}
+        </div>
+      </div>`}
+    </div>
+
+    <div class="section-block">
+      <div class="section-head"><h2 class="section-title">Category Bars</h2></div>
+      ${cats.length === 0 ? `<div class="empty-state">No data yet.</div>` :
+        cats.map(c => `
+          <div class="bar-breakdown-row">
+            <div class="bar-breakdown-head"><span class="name">${c.category}</span><span class="val mono">${money(c.value)} · ${(c.value/total*100).toFixed(0)}%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:${(c.value/total*100).toFixed(1)}%;background:${CATEGORY_COLORS[c.category]}"></div></div>
+          </div>`).join('')}
+    </div>
+
+    <div class="section-block">
+      <div class="section-head">
+        <h2 class="section-title">Unused Subscriptions</h2>
+        <div class="mono" style="font-size:13px;color:var(--accent-3);font-weight:600;">${money(ps)}/mo total</div>
+      </div>
+      ${unused.length === 0 ? `<div class="empty-state">Nothing flagged as unused right now.</div>` :
+        `<div class="sub-list">${unused.map(s => `
+          <div class="sub-card">
+            <div class="unused-pill" style="margin-right:2px;"><span class="unused-dot"></span>Unused</div>
+            <div class="sub-name">${escapeHTML(s.name)}</div>
+            <div class="sub-tag" style="background:${CATEGORY_COLORS[s.category] || CATEGORY_COLORS.Other}">${s.category}</div>
+            <div class="sub-cost mono">${money(s.monthly_cost)}<span style="font-size:10px;color:var(--text-faint);">/mo</span></div>
+            <div class="sub-actions">
+              <button class="btn ghost small" data-action="email-sub" data-id="${s.id}">Cancellation Email</button>
+              <button class="btn danger small" data-action="cancel-sub" data-id="${s.id}">Cancel Now</button>
+            </div>
+          </div>`).join('')}</div>`}
+    </div>
+
+    <div class="section-block">
+      <div class="section-head"><h2 class="section-title">Smart Savings Tips</h2></div>
+      <div class="tips-list">${quickInsightsHTML()}</div>
+    </div>
+  `;
+}
+
+function buildDonutSVG(cats, total){
+  const size = 180, r = 68, cx = 90, cy = 90, stroke = 24;
+  const circumference = 2 * Math.PI * r;
+  let cumulative = 0;
+  const segments = cats.map(c => {
+    const frac = c.value / total;
+    const dash = frac * circumference;
+    const offset = -cumulative * circumference;
+    cumulative += frac;
+    return `<circle r="${r}" cx="${cx}" cy="${cy}" fill="transparent" stroke="${CATEGORY_COLORS[c.category]}" stroke-width="${stroke}" stroke-dasharray="${dash} ${circumference - dash}" stroke-dashoffset="${offset}" transform="rotate(-90 ${cx} ${cy})" stroke-linecap="butt"/>`;
+  }).join('');
+  return `<svg width="${size}" height="${size}" viewBox="0 0 180 180">
+    <circle r="${r}" cx="${cx}" cy="${cy}" fill="transparent" stroke="rgba(255,255,255,0.06)" stroke-width="${stroke}"/>
+    ${segments}
+  </svg>`;
+}
+
+/* =========================================================
+   MODALS
+========================================================= */
+function openModal(html){
+  document.getElementById('modal-root').innerHTML = `<div class="modal-overlay" id="modal-overlay">${html}</div>`;
+  document.getElementById('modal-overlay').addEventListener('click', e => { if(e.target.id === 'modal-overlay') closeModal(); });
+}
+function closeModal(){ document.getElementById('modal-root').innerHTML = ''; }
+
+function openSubForm(existing){
+  const isEdit = !!existing;
+  const s = existing || { name:'', category:CATEGORIES[0], monthly_cost:'', status:'Active', is_unused:false };
+  openModal(`
+    <div class="modal">
+      <button class="modal-close" data-action="close-modal">&times;</button>
+      <h3>${isEdit ? 'Edit Subscription' : 'Add Subscription'}</h3>
+      <p class="modal-sub">${isEdit ? 'Update the details for this line item.' : 'Track a new recurring charge.'}</p>
+      <div class="field-row">
+        <div class="field" style="flex:1;min-width:180px;">
+          <label>Name</label>
+          <input type="text" id="f-name" value="${escapeHTML(s.name)}" placeholder="e.g. Netflix" />
+        </div>
+        <div class="field" style="flex:1;min-width:140px;">
+          <label>Category</label>
+          <select id="f-category">${CATEGORIES.map(c => `<option value="${c}" ${s.category===c?'selected':''}>${c}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="field-row" style="margin-top:12px;">
+        <div class="field" style="flex:1;min-width:140px;">
+          <label>Monthly Cost ($)</label>
+          <input type="number" id="f-cost" step="0.01" min="0" value="${s.monthly_cost}" placeholder="9.99" />
+        </div>
+        <div class="field" style="flex:1;min-width:140px;">
+          <label>Status</label>
+          <select id="f-status">
+            <option value="Active" ${s.status==='Active'?'selected':''}>Active</option>
+            <option value="Cancelled" ${s.status==='Cancelled'?'selected':''}>Cancelled</option>
+          </select>
+        </div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="f-unused" ${s.is_unused ? 'checked' : ''} />
+        <label for="f-unused">I'm not really using this anymore</label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn block" data-action="save-sub" data-id="${isEdit ? s.id : ''}">${isEdit ? 'Save Changes' : 'Add Subscription'}</button>
+      </div>
+    </div>
+  `);
+}
+
+function saveSubFromForm(id){
+  const name = document.getElementById('f-name').value.trim();
+  const category = document.getElementById('f-category').value;
+  const cost = parseFloat(document.getElementById('f-cost').value);
+  const status = document.getElementById('f-status').value;
+  const isUnused = document.getElementById('f-unused').checked;
+
+  if(!name){ alert('Please enter a name.'); return; }
+  if(isNaN(cost) || cost < 0){ alert('Please enter a valid monthly cost.'); return; }
+
+  if(id){
+    const sub = state.subscriptions.find(s => s.id === id);
+    Object.assign(sub, { name, category, monthly_cost: cost, status, is_unused: isUnused });
+  }else{
+    state.subscriptions.push({ id: uid(), name, category, monthly_cost: cost, status, is_unused: isUnused });
+  }
+  saveSubs();
+  closeModal();
+  renderAll();
+}
+
+function openEmailModal(sub){
+  const template = `Subject: Cancel my ${sub.name} subscription
+
+Hi ${sub.name} team,
+
+I'd like to cancel my subscription effective immediately. Please confirm once this has been processed and let me know if there are any final steps needed on my end.
+
+Thanks,
+[Your name]`;
+  openModal(`
+    <div class="modal">
+      <button class="modal-close" data-action="close-modal">&times;</button>
+      <h3>Cancellation Email</h3>
+      <p class="modal-sub">Edit as needed, then copy it into your email client.</p>
+      <textarea id="email-text">${template}</textarea>
+      <div class="modal-actions">
+        <button class="btn block" data-action="copy-email">Copy to Clipboard</button>
+      </div>
+    </div>
+  `);
+}
+
+function openOnboarding(){
+  openModal(`
+    <div class="modal onboard-modal">
+      <h3>Welcome to LifeOps</h3>
+      <p class="modal-sub">Get a clear picture of every recurring charge on your account — and stop paying for things you forgot about.</p>
+      <ul class="onboard-steps">
+        <li><span class="onboard-num">01</span><span>Add every subscription you're paying for — streaming, software, memberships.</span></li>
+        <li><span class="onboard-num">02</span><span>Flag the ones you're not really using anymore.</span></li>
+        <li><span class="onboard-num">03</span><span>Check Insights for your category breakdown and total potential savings.</span></li>
+      </ul>
+      <div class="modal-actions">
+        <button class="btn block" data-action="onboard-sample">Load Sample Data</button>
+      </div>
+      <div class="modal-actions" style="margin-top:8px;">
+        <button class="btn secondary block" data-action="onboard-start">Start From Scratch</button>
+      </div>
+    </div>
+  `);
+}
+
+/* =========================================================
+   EVENT DELEGATION
+========================================================= */
+document.addEventListener('click', e => {
+  const tabBtn = e.target.closest('.tab-btn');
+  if(tabBtn){ switchTab(tabBtn.dataset.tab); return; }
+
+  const actionEl = e.target.closest('[data-action]');
+  if(!actionEl) return;
+  const action = actionEl.dataset.action;
+  const id = actionEl.dataset.id;
+
+  if(action === 'add-sub'){ openSubForm(null); }
+  else if(action === 'edit-sub'){ openSubForm(state.subscriptions.find(s => s.id === id)); }
+  else if(action === 'save-sub'){ saveSubFromForm(id || null); }
+  else if(action === 'close-modal'){ closeModal(); }
+  else if(action === 'delete-sub'){
+    if(confirm('Delete this subscription? This cannot be undone.')){
+      state.subscriptions = state.subscriptions.filter(s => s.id !== id);
+      saveSubs(); renderAll();
+    }
+  }
+  else if(action === 'toggle-unused'){
+    const sub = state.subscriptions.find(s => s.id === id);
+    sub.is_unused = !sub.is_unused;
+    saveSubs(); renderAll();
+  }
+  else if(action === 'cancel-sub'){
+    const sub = state.subscriptions.find(s => s.id === id);
+    sub.status = 'Cancelled';
+    saveSubs(); renderAll();
+  }
+  else if(action === 'email-sub'){ openEmailModal(state.subscriptions.find(s => s.id === id)); }
+  else if(action === 'copy-email'){
+    const text = document.getElementById('email-text').value;
+    navigator.clipboard.writeText(text).then(() => {
+      actionEl.textContent = 'Copied!';
+      setTimeout(() => { actionEl.textContent = 'Copy to Clipboard'; }, 1500);
+    }).catch(() => { alert('Could not copy automatically — please select and copy manually.'); });
+  }
+  else if(action === 'onboard-sample'){
+    state.subscriptions = SAMPLE_SUBS;
+    state.user.onboarding_completed = true;
+    saveSubs(); saveUser();
+    closeModal(); renderAll();
+  }
+  else if(action === 'onboard-start'){
+    state.user.onboarding_completed = true;
+    saveUser();
+    closeModal(); renderAll();
+  }
+});
+
+/* =========================================================
+   PWA: SERVICE WORKER
+========================================================= */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+/* =========================================================
+   INIT
+========================================================= */
+loadData();
+</script>
+</body>
+</html>
