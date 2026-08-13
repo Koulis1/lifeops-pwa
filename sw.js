@@ -1,5 +1,5 @@
-const CACHE_NAME = 'lifeops-cache-v3';
-const ASSETS = ['./index.html', './manifest.json', './icon-192-v2.png', './icon-512-v2.png'];
+const CACHE_NAME = 'lifeops-cache-v4';
+const ASSETS = ['./index.html', './manifest.json', './icon-192-any.png', './icon-512-any.png', './icon-192-maskable.png', './icon-512-maskable.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
