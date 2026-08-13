@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lifeops-cache-v4';
+const CACHE_NAME = 'lifeops-cache-v5';
 const ASSETS = ['./index.html', './manifest.json', './icon-192-any.png', './icon-512-any.png', './icon-192-maskable.png', './icon-512-maskable.png'];
 
 self.addEventListener('install', event => {
