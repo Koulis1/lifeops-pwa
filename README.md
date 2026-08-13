@@ -42,8 +42,8 @@ Conceived and architected as part of my practical application of software concep
 ## 📂 Project Structure
 
 ```text
-├── index.html        # Main app entry point & UI structure
-├── sw.js             # Service worker handling offline caching logic
-├── manifest.json     # PWA metadata & installation configuration
-├── icon-192.png      # Android / Browser app icon (192x192)
-└── icon-512.png      # High-res app icon & Play Store / TWA asset (512x512)
+├── index.html          # Main app entry point & UI structure (Dashboard, Subscriptions, Insights)
+├── sw.js               # Service worker — network-first caching, enables offline load & installability
+├── manifest.json       # PWA metadata & installation configuration
+├── icon-192-v2.png     # Android / Browser app icon (192x192)
+└── icon-512-v2.png     # High-res app icon & Play Store / TWA asset (512x512)
