@@ -313,25 +313,59 @@ const SAMPLE_SUBS = [
 
 /* =========================================================
    PERSISTENCE
+   Uses window.storage when previewed inside a Claude.ai artifact
+   (chat-scoped), and falls back to localStorage automatically when
+   the app is hosted and opened as its own standalone site/PWA
+   (which is what makes data persist on your phone).
 ========================================================= */
+const HAS_CLAUDE_STORAGE = typeof window.storage !== 'undefined';
+
+async function storageGet(key){
+  if(HAS_CLAUDE_STORAGE){
+    try{ const res = await window.storage.get(key, false); return res ? res.value : null; }
+    catch(e){ return null; }
+  }
+  try{ return localStorage.getItem(key); }catch(e){ return null; }
+}
+async function storageSet(key, value){
+  if(HAS_CLAUDE_STORAGE){
+    try{ await window.storage.set(key, value, false); }catch(e){}
+    return;
+  }
+  try{ localStorage.setItem(key, value); }catch(e){}
+}
+
 async function loadData(){
-  try{
-    const res = await window.storage.get('lifeops:subscriptions', false);
-    state.subscriptions = res ? JSON.parse(res.value) : [];
-  }catch(e){ state.subscriptions = []; }
-  try{
-    const res = await window.storage.get('lifeops:user', false);
-    state.user = res ? JSON.parse(res.value) : { onboarding_completed:false };
-  }catch(e){ state.user = { onboarding_completed:false }; }
+  const subsRaw = await storageGet('lifeops:subscriptions');
+  state.subscriptions = subsRaw ? JSON.parse(subsRaw) : [];
+
+  const userRaw = await storageGet('lifeops:user');
+  state.user = userRaw ? JSON.parse(userRaw) : { onboarding_completed:false };
+
+  const works = await testStorage();
+  if(!works) showStorageWarning();
 
   renderAll();
   if(!state.user.onboarding_completed){ openOnboarding(); }
 }
+async function testStorage(){
+  try{
+    await storageSet('lifeops:storage-test', '1');
+    const val = await storageGet('lifeops:storage-test');
+    return val === '1';
+  }catch(e){ return false; }
+}
+function showStorageWarning(){
+  const banner = document.createElement('div');
+  banner.style.cssText = 'position:relative;z-index:3;background:rgba(255,155,117,0.1);border:1px solid rgba(255,155,117,0.35);color:#FF9B75;border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:13px;line-height:1.5;';
+  banner.innerHTML = '<strong>Heads up:</strong> this browser is blocking saved data (often caused by Private/Incognito mode, or storage disabled in browser settings). Anything you add right now won\'t be there next time you open this page.';
+  document.querySelector('.topbar').insertAdjacentElement('afterend', banner);
+}
 async function saveSubs(){
-  try{ await window.storage.set('lifeops:subscriptions', JSON.stringify(state.subscriptions), false); }catch(e){}
+  await storageSet('lifeops:subscriptions', JSON.stringify(state.subscriptions));
 }
 async function saveUser(){
-  try{ await window.storage.set('lifeops:user', JSON.stringify(state.user), false); }catch(e){}
+  await storageSet('lifeops:user', JSON.stringify(state.user));
 }
 
 /* =========================================================

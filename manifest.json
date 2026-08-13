@@ -2,7 +2,7 @@
   "name": "LifeOps — Subscription Intelligence",
   "short_name": "LifeOps",
   "description": "Track recurring expenses, spot unused subscriptions, and find savings.",
-  "start_url": "./lifeops.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
